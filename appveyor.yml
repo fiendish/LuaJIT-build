@@ -13,7 +13,7 @@ install:
       Get-ChildItem .\lua51.* -Recurse | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 build: off
 before_deploy:
-- ps: >-
+- ps: |
     git config --global credential.helper store
     Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:auth_token):x-oauth-basic@github.com`n"
     git config --global user.name "fiendish"
