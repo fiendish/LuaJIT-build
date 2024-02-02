@@ -8,6 +8,7 @@ install:
 - cmd: git clone -b v2.1 --single-branch --depth=1 https://github.com/fiendish/LuaJIT.git C:\luajit
 - ps: pushd c:\luajit\src
 - ps: (Get-Content msvcbuild.bat) | ForEach-Object { $_ -replace " /MD " , " /MT " } | Set-Content msvcbuild.bat
+- ps: Get-Content msvcbuild.bat
 - cmd: ./msvcbuild.bat
 - cmd: copy luajit.exe C:\
 - cmd: copy lua51.* C:\
