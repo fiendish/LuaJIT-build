@@ -7,8 +7,8 @@ install:
 - cmd: '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86'
 - cmd: git clone -b v2.1 --single-branch --depth=1 https://github.com/fiendish/LuaJIT.git C:\luajit
 - ps: pushd c:\luajit\src
-# - ps: (Get-Content msvcbuild.bat) | ForEach-Object { $_ -replace " /MD " , " /MT " } | Set-Content msvcbuild.bat
-- cmd: ./msvcbuild.bat static
+- ps: (Get-Content msvcbuild.bat) | ForEach-Object { $_ -replace " /MD " , " /MT " } | Set-Content msvcbuild.bat
+- cmd: ./msvcbuild.bat
 - cmd: copy luajit.exe C:\
 - cmd: copy lua51.* C:\
 - ps: |
