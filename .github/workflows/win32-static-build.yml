@@ -32,7 +32,12 @@ jobs:
       - name: Patch msvcbuild.bat
         working-directory: LuaJIT/src
         run: |
-            (Get-Content msvcbuild.bat) | ForEach-Object { $_ -replace "/MD " , "/MT " } | Set-Content msvcbuild.bat
+            (Get-Content msvcbuild.bat) | ForEach-Object { 
+                $_ -replace "/MD ", "/MT " `
+                   -replace "/MD$", "/MT" `
+                   -replace "/MDd ", "/MTd " `
+                   -replace "/MDd$", "/MTd" 
+            } | Set-Content msvcbuild.bat
             Get-Content msvcbuild.bat
 
       - name: Build LuaJIT
