@@ -1,0 +1,51 @@
+name: Build LuaJIT for Win32 static
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout LuaJIT
+        uses: actions/checkout@v4
+        with:
+          repository: fiendish/LuaJIT
+          ref: v2.1
+          path: LuaJIT
+          submodules: recursive
+
+      - name: Set up MSVC x86 build environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x86
+
+      - name: Patch msvcbuild.bat
+        working-directory: LuaJIT/src
+        run: |
+            (Get-Content msvcbuild.bat) | ForEach-Object { $_ -replace "/MD " , "/MT " } | Set-Content msvcbuild.bat
+            Get-Content msvcbuild.bat
+
+      - name: Build LuaJIT
+        working-directory: LuaJIT/src
+        run: msvcbuild.bat
+
+      - name: Create or update "latest" release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest
+          files: LuaJIT/src/lua51.*
+          prerelease: false
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
