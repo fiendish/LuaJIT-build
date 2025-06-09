@@ -37,7 +37,7 @@ jobs:
 
       - name: Build LuaJIT
         working-directory: LuaJIT/src
-        run: msvcbuild.bat
+        run: ./msvcbuild.bat
 
       - name: Create or update "latest" release
         uses: softprops/action-gh-release@v2
