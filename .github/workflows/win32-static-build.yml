@@ -47,52 +47,14 @@ jobs:
         run: ./msvcbuild.bat
 
       - name: Create or update "latest" release
-        shell: bash
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest
+          files: |
+            LuaJIT/src/lua51.*
+            LuaJIT/src/luajit.exe
+          prerelease: false
+          draft: false
         env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          release_tag=latest
-          files=(LuaJIT/src/lua51.* LuaJIT/src/luajit.exe)
-          for file in "${files[@]}"; do
-            [[ -f "$file" ]] || { echo "Missing release asset: $file" >&2; exit 1; }
-          done
-
-          if ! release_json=$(gh api "repos/$GH_REPO/releases/tags/$release_tag"); then
-            gh release create "$release_tag" "${files[@]}" --title Latest
-            exit 0
-          fi
-          if [[ $(jq -r .immutable <<< "$release_json") != false ]]; then
-            echo "The release is immutable." >&2
-            exit 1
-          fi
-          release_id=$(jq -er .id <<< "$release_json")
-          old_assets=$(gh api "repos/$GH_REPO/releases/$release_id/assets?per_page=100")
-
-          mkdir staging
-          pending="pending-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-"
-          for file in "${files[@]}"; do
-            cp "$file" "staging/$pending${file##*/}"
-          done
-          gh release upload "$release_tag" staging/*
-          staged_assets=$(gh api "repos/$GH_REPO/releases/$release_id/assets?per_page=100")
-          for file in "${files[@]}"; do
-            jq -er --arg name "$pending${file##*/}" \
-              '.[] | select(.name == $name and .state == "uploaded") | .id' \
-              <<< "$staged_assets" > /dev/null
-          done
-
-          for file in "${files[@]}"; do
-            name=${file##*/}
-            old_id=$(jq -r --arg name "$name" \
-              '.[] | select(.name == $name) | .id' <<< "$old_assets")
-            if [[ -n "$old_id" ]]; then
-              gh api -X DELETE "repos/$GH_REPO/releases/assets/$old_id"
-            fi
-            id=$(jq -er --arg name "$pending$name" \
-              '.[] | select(.name == $name) | .id' <<< "$staged_assets")
-            renamed=$(gh api -X PATCH "repos/$GH_REPO/releases/assets/$id" \
-              -f name="$name" --jq .name)
-            [[ "$renamed" == "$name" ]]
-          done
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
